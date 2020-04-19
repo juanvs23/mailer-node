@@ -1,3 +1,5 @@
+
+
 //variables
 const email=document.querySelector('#email'),
      asunto=document.querySelector('#asunto'),
@@ -19,7 +21,7 @@ function eventListener() {
          mensaje.addEventListener('blur',checkFunction);
          resetBtn.addEventListener('click',inicioApp);
          form.addEventListener('submit',(e)=>{
-               
+             e.preventDefault();  
             console.log(e)
             enviandoCorreo();
             
@@ -71,10 +73,27 @@ const reg=new RegExp("@");
      }
  }
 const enviandoCorreo =()=>{
-    asunto.value
-    email.value
-    mensaje.value
     spinner.style.display="block";
+    
+    let data={
+        "asunto":asunto.value,
+        "email":email.value,
+        "mensaje":mensaje.value
+    },
+    header={
+        'Content-Type': 'application/json'
+      };
+
+
+    console.log(data);
+ fetch('./emailsend',{
+        method:'POST',
+        body:JSON.stringify(data),
+        headers:header
+    })
+    .then(response=>{
+        console.log(response.text());
+    })
     setTimeout(()=>{
         spinner.style.display="none";
         emailSended.style.display="block";
