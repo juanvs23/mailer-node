@@ -1,50 +1,43 @@
-const  {Router}=require('express'),
-router=Router();
+const { Router } = require("express");
+const router = Router();
 const nodemailer = require("nodemailer");
+const { DIR } = require("../../helpers");
 
-router.post('/emailsend',function(req,res){
-let {asunto,email,mensaje}=req.body;
+module.exports = function () {
+  router.get("/", (req, res) => {
+    res.sendFile(DIR + "/public/index.html");
+  });
+  router.post("/sendmail", async (req, res) => {
+    const { nombre, asunto, email, mensaje } = req.body;
 
+    const emailHtml = `
+        <h1>Nuevo mensaje</h1>
+        <ul>
+        <li><b>Nombre: </b>${nombre}</li>
+        <li><b>Email: </b>${email}</li>
+        </ul>
+        <p>${mensaje}</p>
+        `;
+    const stmpConfig = {
+      host: process.env.SMTP,
+      port: process.env.PORT_SMT,
+      secure: true, // use SSL
+      auth: {
+        user: process.env.MAIL,
+        pass: process.env.PASS,
+      },
+    };
 
-contentHTML=`
-<h1>Información desde el formulario</h1>
-<b>Correo:</>${email}<br>
-<b>Asunto</>${asunto}<br>
-<h4>Mensaje<h4>
-<p>
-${mensaje}
-</p>
-`;
+    // configura el hosting
+    const transporter = nodemailer.createTransport(stmpConfig);
+    const info = await transporter.sendMail({
+      from: "Formulario de contacto", // sender address
+      to: process.env.MAIL, // list of receivers
+      subject: asunto, // Subject line
 
-const transporter=  nodemailer.createTransport({
-    name:"tusweb.cl",
-    host:'mail.tusweb.cl',
-    port:587,
-    secure:false,
-    secureConnection:false,
-    auth:{
-        user: "prueba@tusweb.cl",
-        pass: ",Nu];SObyya("
-    },
-    tls: {
-        // do not fail on invalid certs
-        rejectUnauthorized: false
-      }
-});
-let mailOptions = {
-from: "Desde node corre <prueba@tusweb.cl>",
-to:'prueba@tusweb.cl',
-subject:"Correo desde node",
-html:contentHTML
+      html: emailHtml, // html body
+    });
+    res.send("ok!");
+  });
+  return router;
 };
-
-res.send('hola');
-return transporter.sendMail(mailOptions, function (err, info) {
-    if (err)
-    console.log(err);
-    else
-    console.log(info);
-});
-//console.log('send message', info.messageId);
-});
-module.exports={router};
